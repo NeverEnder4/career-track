@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Non-relational tables
+model User {
+  id             Int              @id @default(autoincrement())
+  email          String           @unique
+  name           String?
+  password       String
+  userRoles      UserRoles[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
+  careerTracking CareerTracking[]
+}
+
+model Role {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  description     String
+  rolePermissions RolePermissions[]
+  userRoles       UserRoles[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+}
+
+model Permission {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  description     String
+  rolePermissions RolePermissions[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+}
+
+model CareerTracking {
+  id                   Int                    @id @default(autoincrement())
+  careerPostLink       String?
+  appliedAt            DateTime               @default(now())
+  pay                  Int?
+  payPeriod            PayPeriod?
+  careerRoleId         Int
+  careerRole           CareerRole             @relation(fields: [careerRoleId], references: [id])
+  companyId            Int
+  company              Company                @relation(fields: [companyId], references: [id])
+  careerTrackingStatus CareerTrackingStatus[]
+  userId               Int
+  user                 User                   @relation(fields: [userId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
+}
+
+model Status {
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
+  careerTrackingStatus CareerTrackingStatus[]
+}
+
+model CareerRole {
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String?
+  careerTracking CareerTracking[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
+}
+
+model Company {
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String?
+  careerTracking CareerTracking[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
+}
+
+// Relational tables
+model UserRoles {
+  id        Int      @id @default(autoincrement())
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model RolePermissions {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+}
+
+model CareerTrackingStatus {
+  id               Int            @id @default(autoincrement())
+  date             DateTime
+  careerTrackingId Int
+  careerTracking   CareerTracking @relation(fields: [careerTrackingId], references: [id])
+  statusId         Int
+  status           Status         @relation(fields: [statusId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+}
+
+// Enums
+enum PayPeriod {
+  HOUR
+  WEEK
+  MONTH
+  YEAR
+}
